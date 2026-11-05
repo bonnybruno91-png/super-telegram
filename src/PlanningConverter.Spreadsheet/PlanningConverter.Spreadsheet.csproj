@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\PlanningConverter.Domain\PlanningConverter.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!--
+      §89 : bibliothèque de lecture Excel sans dépendance à Microsoft Excel (§90),
+      couvrant à la fois .xlsx (OOXML) et .xls (BIFF) — exigence §7.1.
+      Version à vérifier/mettre à jour au moment du build (§89) : le sandbox de
+      développement n'a pas accès à nuget.org pour la confirmer.
+    -->
+    <PackageReference Include="NPOI" Version="2.7.1" />
+  </ItemGroup>
+</Project>

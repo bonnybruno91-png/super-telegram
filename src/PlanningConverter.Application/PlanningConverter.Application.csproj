@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\PlanningConverter.Domain\PlanningConverter.Domain.csproj" />
+    <ProjectReference Include="..\PlanningConverter.Spreadsheet\PlanningConverter.Spreadsheet.csproj" />
+    <ProjectReference Include="..\PlanningConverter.Parsing\PlanningConverter.Parsing.csproj" />
+    <ProjectReference Include="..\PlanningConverter.Validation\PlanningConverter.Validation.csproj" />
+    <ProjectReference Include="..\PlanningConverter.Export\PlanningConverter.Export.csproj" />
+    <ProjectReference Include="..\PlanningConverter.Storage\PlanningConverter.Storage.csproj" />
+  </ItemGroup>
+</Project>

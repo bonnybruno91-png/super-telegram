@@ -1,0 +1,15 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <!-- Faux impératif : les noms de mois et de jours français dépendent des données ICU. -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <Authors>Secrétariat — Planning Converter</Authors>
+    <Product>Planning Converter</Product>
+    <!-- §5 : le nom doit pouvoir être remplacé facilement. Ne pas le disperser ailleurs. -->
+  </PropertyGroup>
+</Project>

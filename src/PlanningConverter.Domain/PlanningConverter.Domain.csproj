@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!--
+    Règle d'architecture (plan §3.2) : ce projet ne référence RIEN.
+    Pas de NPOI, pas de WPF, pas d'I/O. Uniquement des types et de la logique pure.
+  -->
+</Project>

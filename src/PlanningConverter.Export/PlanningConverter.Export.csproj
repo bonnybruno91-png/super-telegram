@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\PlanningConverter.Domain\PlanningConverter.Domain.csproj" />
+  </ItemGroup>
+  <!--
+    Aucune dépendance externe : l'ICS et le CSV sont écrits par du code maison (voir IcsWriter,
+    CsvWriterLite). Raison : l'API d'Ical.Net 5 n'a jamais pu être vérifiée, son VTIMEZONE est
+    incomplet, et CsvHelper n'apportait rien pour deux formats à écriture simple. Moins de
+    paquets = moins de risque de restauration et un contrôle total du contenu des fichiers.
+  -->
+</Project>

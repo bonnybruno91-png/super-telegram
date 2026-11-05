@@ -1,0 +1,94 @@
+<UserControl x:Class="PlanningConverter.Ui.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:conv="clr-namespace:PlanningConverter.Ui.Converters"
+             mc:Ignorable="d"
+             AllowDrop="True"
+             DragEnter="OnDragEnter" DragLeave="OnDragLeave" DragOver="OnDragOver" Drop="OnDrop"
+             Background="{StaticResource Brush.Background}">
+
+    <UserControl.Resources>
+        <Style x:Key="DropZoneBorder" TargetType="Border">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Accent}" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsDragOver}" Value="True">
+                    <Setter Property="BorderThickness" Value="4" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- Bordure d'accent sur toute la fenêtre au survol d'un fichier (§10.3) — visible ET annoncée
+         (le changement de libellé ci-dessous est capté par la région live de la fenêtre principale). -->
+    <Border Style="{StaticResource DropZoneBorder}">
+        <Grid>
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" MaxWidth="640">
+
+                <!-- Carte unique et surélevée : la seule surface élevée de l'écran (§10.3). -->
+                <Border Style="{StaticResource Style.Card}">
+                    <StackPanel>
+                        <TextBlock Text="Convertir un planning"
+                                   Style="{StaticResource Style.Heading1}"
+                                   AutomationProperties.HeadingLevel="Level1"
+                                   TextAlignment="Center" Margin="0,0,0,12" />
+
+                        <!-- Libellé qui change au survol d'un fichier glissé (§10.3) : deux TextBlock
+                             dont la visibilité bascule sur IsDragOver, plus simple et plus fiable ici
+                             qu'un convertisseur texte inline. -->
+                        <TextBlock Text="Déposez votre fichier Excel ici" Style="{StaticResource Style.Subtitle}"
+                                   TextAlignment="Center" Margin="0,0,0,32"
+                                   Visibility="{Binding IsDragOver, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instance}}" />
+                        <TextBlock Text="Déposer pour analyser" Style="{StaticResource Style.Subtitle}"
+                                   Foreground="{StaticResource Brush.Accent}" FontWeight="SemiBold"
+                                   TextAlignment="Center" Margin="0,0,0,32"
+                                   Visibility="{Binding IsDragOver, Converter={x:Static conv:BoolToVisibilityConverter.Instance}}" />
+
+                        <!-- Avant sélection : bouton d'action principale. -->
+                        <StackPanel Visibility="{Binding HasSelectedFile, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instance}}"
+                                    HorizontalAlignment="Center">
+                            <Button Content="Sélectionner un fichier"
+                                    Style="{StaticResource Style.PrimaryButton}"
+                                    Command="{Binding SelectFileCommand}"
+                                    AutomationProperties.Name="Sélectionner un fichier Excel à convertir"
+                                    HorizontalAlignment="Center" />
+                            <TextBlock Text="Formats acceptés : XLSX et XLS"
+                                       Foreground="{StaticResource Brush.TextSecondary}"
+                                       FontSize="13" TextAlignment="Center" Margin="0,16,0,0" />
+                        </StackPanel>
+
+                        <!-- Après sélection : récapitulatif et action suivante (le focus se pose ici — voir code-behind). -->
+                        <StackPanel Visibility="{Binding HasSelectedFile, Converter={x:Static conv:BoolToVisibilityConverter.Instance}}"
+                                    HorizontalAlignment="Center">
+                            <TextBlock FontWeight="SemiBold" FontSize="15" TextAlignment="Center"
+                                       Foreground="{StaticResource Brush.TextPrimary}">
+                                <Run Text="{Binding SelectedFileName, Mode=OneWay}" />
+                            </TextBlock>
+                            <TextBlock Foreground="{StaticResource Brush.TextSecondary}" FontSize="13"
+                                       TextAlignment="Center" Margin="0,4,0,20">
+                                <Run Text="{Binding SelectedFileSizeText, Mode=OneWay}" />
+                            </TextBlock>
+                            <Button x:Name="AnalyzeButton" Content="Analyser"
+                                    Style="{StaticResource Style.PrimaryButton}"
+                                    Command="{Binding AnalyzeCommand}"
+                                    AutomationProperties.Name="Analyser le fichier sélectionné"
+                                    HorizontalAlignment="Center" />
+                            <Button Content="Choisir un autre fichier" Command="{Binding SelectFileCommand}"
+                                    Background="Transparent" Foreground="{StaticResource Brush.Accent}"
+                                    BorderThickness="0" Margin="0,12,0,0" Cursor="Hand"
+                                    HorizontalAlignment="Center" />
+                        </StackPanel>
+
+                        <!-- Erreur de format (§83) : jamais seulement une bordure rouge, toujours un mot. -->
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource Brush.Error}"
+                                   FontWeight="SemiBold" TextAlignment="Center" Margin="0,16,0,0"
+                                   TextWrapping="Wrap"
+                                   Visibility="{Binding ErrorMessage, Converter={x:Static conv:NullToVisibilityConverter.Instance}}" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

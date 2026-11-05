@@ -1,0 +1,67 @@
+name: build-windows
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Version du SDK
+        run: dotnet --info
+
+      - name: Restore
+        run: dotnet restore PlanningConverter.sln
+
+      - name: Build (Release)
+        run: dotnet build PlanningConverter.sln -c Release --no-restore -v minimal
+
+      - name: Tests moteur (analyse, validation)
+        run: dotnet test tests/PlanningConverter.Parsing.Tests/PlanningConverter.Parsing.Tests.csproj -c Release --no-build --logger "trx;LogFileName=parsing.trx" --results-directory TestResults
+
+      - name: Tests exports
+        run: dotnet test tests/PlanningConverter.Export.Tests/PlanningConverter.Export.Tests.csproj -c Release --no-build --logger "trx;LogFileName=export.trx" --results-directory TestResults
+
+      - name: Publication Windows x64 (autonome, fichier unique)
+        run: >
+          dotnet publish src/PlanningConverter.Ui/PlanningConverter.Ui.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -o artifacts/windows-x64
+
+      - name: Contenu publié
+        shell: pwsh
+        run: |
+          Get-ChildItem artifacts/windows-x64 | Select-Object Name, Length | Format-Table -AutoSize
+          Compress-Archive -Path artifacts/windows-x64/* -DestinationPath PlanningConverter_win-x64.zip
+
+      - name: Démarrage de l'exécutable (fumée, 5 s)
+        shell: pwsh
+        continue-on-error: true
+        run: |
+          $p = Start-Process -FilePath artifacts/windows-x64/PlanningConverter.exe -PassThru
+          Start-Sleep -Seconds 5
+          if ($p.HasExited) { Write-Error "L'application s'est fermée au démarrage (code $($p.ExitCode))" } else { Write-Host "L'application tourne après 5 s."; Stop-Process -Id $p.Id }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PlanningConverter_win-x64
+          path: PlanningConverter_win-x64.zip
+          if-no-files-found: warn
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultats-tests
+          path: TestResults/*.trx
+          if-no-files-found: warn

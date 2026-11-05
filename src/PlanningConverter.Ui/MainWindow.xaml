@@ -1,0 +1,86 @@
+<Window x:Class="PlanningConverter.Ui.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:PlanningConverter.Ui.ViewModels"
+        xmlns:views="clr-namespace:PlanningConverter.Ui.Views"
+        Title="Planning Converter"
+        Width="1100" Height="720" MinWidth="720" MinHeight="480"
+        Background="{StaticResource Brush.Background}"
+        FontFamily="{StaticResource Font.Default}">
+
+    <Window.Resources>
+        <!-- Association type de ViewModel → vue (plan §10.1 : une seule fenêtre, navigation interne). -->
+        <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+            <views:HomeView />
+        </DataTemplate>
+
+        <Style x:Key="NavItem" TargetType="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Padding" Value="16,12" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.TextPrimary}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinHeight" Value="44" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource Brush.Border}" />
+                </Trigger>
+                <!-- §63 : rail replié en dessous de 900 px — non implémenté dans cette version
+                     (TODO §123), le rail reste toujours développé pour l'instant. -->
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="220" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Rail de navigation : libellés textuels toujours visibles à côté des icônes (§63). -->
+            <StackPanel Grid.Column="0" Background="{StaticResource Brush.Surface}" Margin="0" >
+                <TextBlock Text="Planning Converter" FontWeight="SemiBold" FontSize="16"
+                           Margin="20,24,20,24" Foreground="{StaticResource Brush.TextPrimary}" />
+
+                <Button Content="🏠  Accueil" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                        AutomationProperties.Name="Accueil" />
+                <Button Content="🕑  Historique" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                        IsEnabled="False" AutomationProperties.Name="Historique — pas encore disponible" />
+                <Button Content="📐  Modèles" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                        IsEnabled="False" AutomationProperties.Name="Modèles — pas encore disponible" />
+                <Button Content="⚙️  Paramètres" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                        IsEnabled="False" AutomationProperties.Name="Paramètres — pas encore disponible" />
+                <Button Content="❓  Aide" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                        IsEnabled="False" AutomationProperties.Name="Aide — pas encore disponible" />
+            </StackPanel>
+
+            <!-- Zone de contenu : une seule vue à la fois. -->
+            <ContentControl Grid.Column="1" Content="{Binding CurrentView}" Focusable="False" />
+        </Grid>
+
+        <!-- Barre de statut / région live (§64) : annoncée aux lecteurs d'écran à chaque changement. -->
+        <Border Grid.Row="1" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}"
+                BorderThickness="0,1,0,0" Padding="20,10">
+            <TextBlock Text="{Binding StatusMessage}"
+                       Foreground="{StaticResource Brush.TextSecondary}" FontSize="13"
+                       AutomationProperties.LiveSetting="Polite" />
+        </Border>
+    </Grid>
+</Window>

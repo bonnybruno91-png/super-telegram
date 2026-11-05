@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\PlanningConverter.Domain\PlanningConverter.Domain.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Version à vérifier au moment du build (§89) — non confirmable depuis ce sandbox. -->
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.0" />
+    <!-- System.Text.Json fait partie du framework partagé depuis .NET 5+ : pas de référence
+         de paquet nécessaire, il est utilisé directement (AppSettings.cs, TemplateStore.cs). -->
+  </ItemGroup>
+</Project>
