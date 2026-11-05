@@ -62,6 +62,9 @@ public static class PlanningTextFormatter
         return $"{TimeRangeCompact(ev)} : {string.Join(" — ", parts)}\n";
     }
 
+    private static string GroupSuffix(ScheduleEvent ev) =>
+        string.IsNullOrWhiteSpace(ev.Group) ? "" : $" — {ev.Group}";
+
     private static string TimeRange(ScheduleEvent ev) =>
         ev.IsAllDay ? "Journée entière" : $"{ev.StartTime:HH\\hmm} - {ev.EndTime:HH\\hmm}";
 
@@ -101,7 +104,4 @@ public sealed class TextExporter : IExporter
         var info = new FileInfo(path);
         return new ExportedFile(path, info.Length, exportableCount);
     }
-
-    private static string GroupSuffix(ScheduleEvent ev) =>
-        string.IsNullOrWhiteSpace(ev.Group) ? "" : $" — {ev.Group}";
 }
