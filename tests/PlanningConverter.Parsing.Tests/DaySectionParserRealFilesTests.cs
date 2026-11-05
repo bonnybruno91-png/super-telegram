@@ -231,7 +231,7 @@ public class SessionMergerTests
             Week("b.xlsx", new DateOnly(2026, 11, 16), T0, "B"),
             Week("a.xlsx", new DateOnly(2026, 11, 9), T0, "A")]);
 
-        Assert.Equal(["A", "B"], merged.Events.Select(e => e.Title).ToArray());
+        Assert.Equal(["A", "B"], merged.Events.Select(e => e.Title!).ToArray());
         Assert.Equal(new DateOnly(2026, 11, 9), merged.PeriodStart);
         Assert.Equal(new DateOnly(2026, 11, 20), merged.PeriodEnd);
         Assert.Empty(merged.Notices);
@@ -246,7 +246,7 @@ public class SessionMergerTests
 
         var notice = Assert.Single(merged.Notices);
         Assert.Contains("16 novembre 2026", notice);
-        Assert.Contains("22 novembre 2026", notice);
+        Assert.Contains("20 novembre 2026", notice);
     }
 
     [Fact]

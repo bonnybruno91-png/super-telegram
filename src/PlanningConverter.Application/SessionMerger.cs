@@ -53,9 +53,15 @@ public static class SessionMerger
             var nextStart = dated[i].Result.PeriodStart!.Value;
             if (nextStart.DayNumber - previousEnd.DayNumber > 3)
             {
+                // Semaines entières manquantes : du lundi suivant la fin précédente au vendredi précédant le début suivant.
                 var from = previousEnd.AddDays(1);
+                while (from.DayOfWeek != DayOfWeek.Monday) from = from.AddDays(1);
                 var to = nextStart.AddDays(-1);
-                notices.Add($"Aucun fichier pour la période du {Fmt(from)} au {Fmt(to)}.");
+                while (to.DayOfWeek != DayOfWeek.Friday) to = to.AddDays(-1);
+                if (from <= to)
+                {
+                    notices.Add($"Aucun fichier pour la période du {Fmt(from)} au {Fmt(to)}.");
+                }
             }
         }
 
