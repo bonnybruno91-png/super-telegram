@@ -18,7 +18,7 @@ public sealed record TimeRangeResult(TimeOnly? Start, TimeOnly? End, IReadOnlyLi
 /// </summary>
 public static partial class TimeRangeParser
 {
-    [GeneratedRegex(@"\s*(-|–|—|/|à|au|jusqu'à|>)\s*", RegexOptions.IgnoreCase)]
+    [GeneratedRegex(@"\s*(?:-|–|—|/|à|au|jusqu'à|>)\s*", RegexOptions.IgnoreCase)]
     private static partial Regex RangeSeparator();
 
     public static TimeRangeResult Parse(string rawCellText)
