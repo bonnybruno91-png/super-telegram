@@ -187,7 +187,7 @@ public class NamingAndSelectionTests
 
         var result = ExportSelection.Publishable([late, ignored, broken, early]);
 
-        Assert.Equal(["A", "B"], result.Select(e => e.Title).ToArray());
+        Assert.Equal(["A", "B"], result.Select(e => e.Title!).ToArray());
         Assert.Single(ExportSelection.Excluded([late, ignored, broken, early]));
     }
 }

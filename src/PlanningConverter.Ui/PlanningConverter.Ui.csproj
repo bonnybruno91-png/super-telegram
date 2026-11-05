@@ -16,6 +16,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Le SDK WPF retire System.IO des usings implicites. -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+
+  <ItemGroup>
     <!--
       Volontairement PAS de référence à Spreadsheet/Parsing/Export (règle d'architecture,
       plan §3.2) : cette couche ne parle qu'à Application, qui compose le reste.
