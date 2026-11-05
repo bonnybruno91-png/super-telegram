@@ -162,13 +162,15 @@ public static class TitleBuilder
     public static string Build(ScheduleEvent ev, TitleFormat format)
     {
         var exact = ExactTitle(ev);
-        return format switch
+        var core = format switch
         {
             TitleFormat.Simple => exact,
             TitleFormat.CourseDashTeacher => string.IsNullOrWhiteSpace(ev.Teacher) ? exact : $"{exact} — {ev.Teacher}",
             TitleFormat.UeDashCourse => string.IsNullOrWhiteSpace(ev.Ue) ? (ev.Title ?? "") : $"{ev.Ue} — {ev.Title}",
             _ => exact
         };
+        // Séance réservée à un groupe : le groupe termine le titre. Aucun groupe = séance commune.
+        return string.IsNullOrWhiteSpace(ev.Group) ? core : $"{core} — {ev.Group}";
     }
 }
 

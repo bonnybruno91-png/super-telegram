@@ -47,7 +47,7 @@ public static class PlanningTextFormatter
     {
         var sb = new StringBuilder();
         sb.Append($"{TimeRange(ev)}\n");
-        sb.Append($"{TitleBuilder.ExactTitle(ev)}\n");
+        sb.Append($"{TitleBuilder.ExactTitle(ev)}{GroupSuffix(ev)}\n");
         if (!string.IsNullOrWhiteSpace(ev.Teacher)) sb.Append($"Enseignant : {ev.Teacher}\n");
         if (!string.IsNullOrWhiteSpace(ev.Room)) sb.Append($"Salle : {ev.Room}\n");
         sb.Append('\n');
@@ -56,7 +56,7 @@ public static class PlanningTextFormatter
 
     private static string FormatCompact(ScheduleEvent ev)
     {
-        var parts = new List<string> { TitleBuilder.ExactTitle(ev) };
+        var parts = new List<string> { TitleBuilder.ExactTitle(ev) + GroupSuffix(ev) };
         if (!string.IsNullOrWhiteSpace(ev.Teacher)) parts.Add(ev.Teacher);
         if (!string.IsNullOrWhiteSpace(ev.Room)) parts.Add($"Salle {ev.Room}");
         return $"{TimeRangeCompact(ev)} : {string.Join(" — ", parts)}\n";
@@ -101,4 +101,7 @@ public sealed class TextExporter : IExporter
         var info = new FileInfo(path);
         return new ExportedFile(path, info.Length, exportableCount);
     }
+
+    private static string GroupSuffix(ScheduleEvent ev) =>
+        string.IsNullOrWhiteSpace(ev.Group) ? "" : $" — {ev.Group}";
 }

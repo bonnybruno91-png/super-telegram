@@ -50,6 +50,7 @@ public static class DaySectionParser
             var titleCell = grid.Cell(r, mapping.TitleColumn!.Value);
             var teacherCell = mapping.TeacherColumn is { } tec ? grid.Cell(r, tec) : null;
             var roomCell = mapping.RoomColumn is { } rc ? grid.Cell(r, rc) : null;
+            var groupCell = mapping.GroupColumn is { } gc ? grid.Cell(r, gc) : null;
 
             if (titleCell is null)
             {
@@ -61,7 +62,8 @@ public static class DaySectionParser
             }
 
             var rowEmpty = (timeCell is null || timeCell.IsEmpty) && titleCell.IsEmpty &&
-                           (teacherCell is null || teacherCell.IsEmpty) && (roomCell is null || roomCell.IsEmpty);
+                           (teacherCell is null || teacherCell.IsEmpty) && (roomCell is null || roomCell.IsEmpty) &&
+                           (groupCell is null || groupCell.IsEmpty);
             if (rowEmpty)
             {
                 continue; // ligne vide : ne réinitialise pas le contexte (§15)
@@ -80,7 +82,7 @@ public static class DaySectionParser
                     var otherColumnsEmpty =
                         (timeCell is null || timeCell.IsEmpty) &&
                         (teacherCell is null || teacherCell.IsEmpty) &&
-                        (roomCell is null || roomCell.IsEmpty);
+                        (roomCell is null || roomCell.IsEmpty) && (groupCell is null || groupCell.IsEmpty);
 
                     currentDay = header;
                     trace.Add(TraceEntry.Now("DaySectionParser",
@@ -91,7 +93,7 @@ public static class DaySectionParser
                 }
             }
 
-            events.Add(BuildEvent(grid, r, sourceFile, promotion, currentDay, timeCell, titleCell, teacherCell, roomCell));
+            events.Add(BuildEvent(grid, r, sourceFile, promotion, currentDay, timeCell, titleCell, teacherCell, roomCell, groupCell));
         }
 
         trace.Add(TraceEntry.Now("DaySectionParser", $"{events.Count} ligne(s) d'événement construite(s)."));
@@ -120,7 +122,7 @@ public static class DaySectionParser
 
     private static ScheduleEvent BuildEvent(
         CellGrid grid, int row, string sourceFile, string? promotion, DayHeaderResult? day,
-        SourceCell? timeCell, SourceCell titleCell, SourceCell? teacherCell, SourceCell? roomCell)
+        SourceCell? timeCell, SourceCell titleCell, SourceCell? teacherCell, SourceCell? roomCell, SourceCell? groupCell)
     {
         var issues = new List<EventIssue>();
         var inferred = new HashSet<string>();
@@ -216,20 +218,20 @@ public static class DaySectionParser
             teacher = string.Join(" / ", teacherCell.Lines);
         }
 
-        // --- Salle / Groupe ---
-        string? room = null, group = null;
+        // --- Salle : texte tel quel (P1 IFMKDV, S3 IFMKDV, AMPHI 4 LAENNEC, SUR SITE sont des salles) ---
+        string? room = null;
         if (roomCell is not null && !roomCell.IsEmpty)
         {
             sourceCells.Add(roomCell);
-            var split = LocationSplitter.Split(roomCell.RawText);
-            room = split.Room;
-            group = split.Group;
-            if (split.WasAmbiguous)
-            {
-                issues.Add(new EventIssue(IssueCode.LocationAmbiguous, IssueSeverity.Info,
-                    $"La colonne Salle contient à la fois un lieu ('{room}') et un groupe ('{group}') — séparation automatique à vérifier.",
-                    Field: nameof(ScheduleEvent.Room)));
-            }
+            room = string.Join(", ", roomCell.Lines.Select(l => l.Trim()).Where(l => l.Length > 0));
+        }
+
+        // --- Groupe : uniquement la colonne « Groupe ». Vide = séance commune à toute la promotion. ---
+        string? group = null;
+        if (groupCell is not null && !groupCell.IsEmpty)
+        {
+            sourceCells.Add(groupCell);
+            group = GroupLabel.Normalize(groupCell.RawText);
         }
 
         var originalContent = string.Join(" | ", sourceCells.Select(c => $"{c.A1Reference}={c.RawText.Replace('\n', '·')}"));

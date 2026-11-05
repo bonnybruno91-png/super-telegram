@@ -3,7 +3,7 @@ using System.Text;
 
 namespace PlanningConverter.Parsing.Lexicons;
 
-public enum SemanticColumn { Day, Date, Time, Title, Teacher, Room }
+public enum SemanticColumn { Day, Date, Time, Title, Teacher, Room, Group }
 
 /// <summary>
 /// §21 : le moteur doit reconnaître des synonymes d'en-tête. Externalisé sous forme de
@@ -18,6 +18,7 @@ public static class HeaderSynonymLexicon
         [SemanticColumn.Teacher] = ["enseignant", "professeur", "intervenant", "formateur", "prof"],
         [SemanticColumn.Room] = ["salle", "lieu", "local", "amphi", "amphitheatre"],
         [SemanticColumn.Time] = ["horaire", "horaires", "heure", "creneau"],
+        [SemanticColumn.Group] = ["groupe", "groupes", "gr"],
         [SemanticColumn.Day] = ["jour", "journee"],
         [SemanticColumn.Date] = ["date"],
     };

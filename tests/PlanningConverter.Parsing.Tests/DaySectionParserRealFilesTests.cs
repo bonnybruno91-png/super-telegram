@@ -44,8 +44,8 @@ public class DaySectionParserRealFilesTests
         Assert.Equal("UE18", first.Ue);
         Assert.Equal("ORAL PATHOLOGIES SANTE MENTALE", first.Title);
         Assert.Equal("DURAND Alice", first.Teacher);
-        Assert.Equal("P2 IFMKDV", first.Group);
-        Assert.Null(first.Room);
+        Assert.Equal("P2 IFMKDV", first.Room);   // P2 est une salle de cours
+        Assert.Null(first.Group);                // pas de colonne « Groupe » : séance commune
 
         // Mercredi 03 juin : section de jour présente, aucun événement — ce n'est pas une erreur (§12 étage 3).
         Assert.DoesNotContain(result.Events, e => e.Date == new DateOnly(2026, 6, 3));
@@ -85,10 +85,10 @@ public class DaySectionParserRealFilesTests
         Assert.Equal("AMPHI 3 LAENNEC", geriatrie.Room);
         Assert.Null(geriatrie.Group);
 
-        // Deux groupes sur deux lignes de la même cellule, aucune salle.
+        // Deux salles sur deux lignes de la même cellule : ce sont des salles, jamais des groupes.
         var ecos = result.Events.Single(e => e.Title!.Contains("INFORMATION ECOS"));
-        Assert.Null(ecos.Room);
-        Assert.Equal("P1 IFMKDV, S1 IFMKDV", ecos.Group);
+        Assert.Equal("P1 IFMKDV, S1 IFMKDV", ecos.Room);
+        Assert.Null(ecos.Group);
     }
 
     [Fact]
@@ -146,4 +146,59 @@ public class DaySectionParserRealFilesTests
             }
         }
     }
+
+    [Fact]
+    public void Semaine_46_with_group_column_reads_group_B_and_keeps_rooms_as_rooms()
+    {
+        var result = AnalyzeFirstSheet("EDT_MK4_SEMAINE_46_AVEC_GROUPES_NOV_2026.xlsx");
+
+        Assert.Equal("MK4", result.PlanningName);
+        Assert.Equal(14, result.Events.Count);
+        Assert.Equal(new DateOnly(2026, 11, 9), result.PeriodStart);
+        Assert.Equal(new DateOnly(2026, 11, 13), result.PeriodEnd);
+
+        // Un seul cours est réservé à un groupe ; tous les autres sont communs.
+        var withGroup = result.Events.Where(e => e.Group is not null).ToList();
+        var uniqueGroupEvent = Assert.Single(withGroup);
+        Assert.Equal("Groupe B", uniqueGroupEvent.Group);
+        Assert.Equal(new DateOnly(2026, 11, 10), uniqueGroupEvent.Date);
+        Assert.Equal("SUR SITE", uniqueGroupEvent.Room);
+
+        // P2/S3/S1 : salles.
+        Assert.Contains(result.Events, e => e.Room == "S3 IFMKDV" && e.Group is null);
+        Assert.Contains(result.Events, e => e.Room == "P2 IFMKDV" && e.Group is null);
+
+        // Jour férié sans horaire, temps personnel, réunion : conservés.
+        Assert.Contains(result.Events, e => e.Title == "ARMISTICE 1918" && e.IsAllDay);
+        Assert.Contains(result.Events, e => e.Title == "TEMPS PERSONNEL");
+        Assert.Contains(result.Events, e => e.Title == "REUNION CVSE");
+
+        // Cours sans enseignant (UE16 TPG) : valide, rien d'inventé.
+        var tpg = result.Events.Single(e => e.Title!.Contains("TPG CAS CLINIQUE 2"));
+        Assert.Null(tpg.Teacher);
+        Assert.Equal(EventStatus.Valid, tpg.Status);
+    }
+}
+
+public class GroupLabelTests
+{
+    [Theory]
+    [InlineData("GROUPE  B", "Groupe B")]
+    [InlineData("Groupe A", "Groupe A")]
+    [InlineData("b", "Groupe B")]
+    [InlineData("A et B", "Groupe A, Groupe B")]
+    [InlineData("A, B", "Groupe A, Groupe B")]
+    [InlineData("Gr A", "Groupe A")]
+    public void Normalizes_group_cells(string raw, string expected) =>
+        Assert.Equal(expected, GroupLabel.Normalize(raw));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Empty_means_common(string? raw) => Assert.Null(GroupLabel.Normalize(raw));
+
+    [Fact]
+    public void Unrecognized_text_is_kept_as_is() =>
+        Assert.Equal("Demi-promotion nord", GroupLabel.Normalize("Demi-promotion nord"));
 }

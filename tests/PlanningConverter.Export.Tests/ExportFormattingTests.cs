@@ -145,3 +145,34 @@ public class PlanningTextFormatterTests
         Assert.Equal(1, occurrences);
     }
 }
+
+public class GroupTitleTests
+{
+    private static ScheduleEvent Make(string? group, string? teacher) => new()
+    {
+        Id = Guid.NewGuid(), Uid = "u", SourceFile = "f", SourceSheet = "s", SourceRow = 1,
+        SourceCells = [], OriginalContent = "", Title = "TK PNEUMOPATHOLOGIE", Ue = "UE21",
+        Teacher = teacher, Group = group, Issues = [], InferredFields = new HashSet<string>(),
+    };
+
+    [Fact]
+    public void Group_ends_the_title()
+    {
+        Assert.Equal("UE21 TK PNEUMOPATHOLOGIE — Groupe B",
+            TitleBuilder.Build(Make("Groupe B", null), TitleFormat.CourseDashTeacher));
+    }
+
+    [Fact]
+    public void Group_comes_after_teacher()
+    {
+        Assert.Equal("UE21 TK PNEUMOPATHOLOGIE — Eva Lambert — Groupe B",
+            TitleBuilder.Build(Make("Groupe B", "Eva Lambert"), TitleFormat.CourseDashTeacher));
+    }
+
+    [Fact]
+    public void Common_session_has_no_group_suffix()
+    {
+        Assert.Equal("UE21 TK PNEUMOPATHOLOGIE",
+            TitleBuilder.Build(Make(null, null), TitleFormat.CourseDashTeacher));
+    }
+}

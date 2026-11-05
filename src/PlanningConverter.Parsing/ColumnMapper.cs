@@ -6,7 +6,7 @@ namespace PlanningConverter.Parsing;
 
 public sealed record ColumnMapping(
     int? TimeColumn, int? TitleColumn, int? TeacherColumn, int? RoomColumn,
-    int? HeaderRow, IReadOnlyList<string> Notes)
+    int? HeaderRow, IReadOnlyList<string> Notes, int? GroupColumn = null)
 {
     public bool IsUsable => TitleColumn is not null;
 }
@@ -34,7 +34,7 @@ public static class ColumnMapper
     {
         var notes = new List<string>();
         int? headerRow = null;
-        int? timeCol = null, titleCol = null, teacherCol = null, roomCol = null;
+        int? timeCol = null, titleCol = null, teacherCol = null, roomCol = null, groupCol = null;
 
         // 1. Recherche d'une ligne d'en-tête dans les 5 premières lignes.
         for (var r = 0; r < Math.Min(grid.RowCount, 5); r++)
@@ -55,6 +55,7 @@ public static class ColumnMapper
                 matched.TryGetValue(SemanticColumn.Title, out var tic); titleCol = tic;
                 matched.TryGetValue(SemanticColumn.Teacher, out var tec); teacherCol = matched.ContainsKey(SemanticColumn.Teacher) ? tec : null;
                 matched.TryGetValue(SemanticColumn.Room, out var rc); roomCol = matched.ContainsKey(SemanticColumn.Room) ? rc : null;
+                groupCol = matched.TryGetValue(SemanticColumn.Group, out var gc) ? gc : null;
                 notes.Add($"Ligne d'en-tête détectée en ligne {r + 1}.");
                 break;
             }
@@ -82,7 +83,7 @@ public static class ColumnMapper
             notes.Add("Repli sur la convention Heure/Intitulé/Intervenant/Salle (colonnes A à D) — confiance réduite.");
         }
 
-        return new ColumnMapping(timeCol, titleCol, teacherCol, roomCol, headerRow, notes);
+        return new ColumnMapping(timeCol, titleCol, teacherCol, roomCol, headerRow, notes, groupCol);
     }
 
     private static int? FindBestTimeColumn(CellGrid grid, int scanStart)
