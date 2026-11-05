@@ -1,69 +1,58 @@
 # Planning Converter
 
-Application Windows convertissant des emplois du temps Excel en calendriers accessibles
-(ICS, CSV, texte). Voir `Cahier_des_charges_Planning_Converter.md` pour la spécification
-complète et `Plan_de_conception_Planning_Converter.md` pour l'architecture et le lotissement.
+Application Windows (C# / .NET 10 / WPF) qui convertit les emplois du temps Excel du secrétariat
+(promotion MK4) en plannings accessibles : calendrier **ICS**, texte accessible **TXT**, tableur **CSV**
+et **PDF** gros caractères. Conçue pour des étudiants malvoyants : navigation clavier, libellés
+explicites, messages annoncés aux lecteurs d'écran, thème sombre à fort contraste.
 
-**Avant toute chose, lisez `DEV_NOTES.md`** : il documente les écarts constatés entre le
-cahier des charges et les fichiers réels du secrétariat, les décisions prises en conséquence,
-et les limites connues du code actuel.
+Spécification faisant autorité : `docs/Cahier_des_charges_final_Planning_Converter.md`
+(`docs/historique/` = anciens documents, à titre d'archive). Notes techniques : `DEV_NOTES.md`.
 
-## État réel (5 novembre 2026, reprise)
+## État réel (5 novembre 2026)
 
-**Rien n'a encore été compilé ni exécuté.** Lot 0 appliqué sur le papier : exécutable WPF déclaré
-(`WinExe`), conflit de nom `Application` corrigé, ICS et CSV écrits sans bibliothèque externe,
-validation recalculée à chaque correction, cours incomplet exclu sans bloquer l'export, pauses ignorées,
-lexiques par mots entiers, thème sombre, classeurs de test anonymisés, workflow Windows + `build.ps1`.
-Voir `docs/Cahier_des_charges_final_Planning_Converter.md` (autorité) ; `docs/historique/` = anciens documents.
+Compilé et testé en ligne par GitHub Actions (runner Windows) : **99 tests automatiques passent**
+(65 analyse/validation/sauvegarde/fusion, 34 exports) et l'exécutable démarre sans erreur.
+**Jamais vérifié à l'écran** : le rendu WPF, la navigation clavier et l'annonce par NVDA/Narrateur
+restent à essayer sur un poste Windows.
 
-**Compiler et publier (Windows, SDK .NET 10) :** `.\build.ps1` → `artifacts\windows-x64\PlanningConverter.exe`.
+Parcours disponible : Importer (un ou plusieurs fichiers, un par semaine) → Vérifier (cours par jour,
+corriger / ignorer / réintégrer, annuler / rétablir, remarques sur les semaines manquantes ou en
+double) → Exporter (ICS, TXT, CSV, PDF). Reprise automatique de la dernière conversion, écrans Aide et
+Historique.
 
-## État d'avancement (ancien, version initiale)
+Règles métier confirmées :
+- P1, P2, S1…S4 sont des **salles**. Le **groupe** (A/B) vient de la colonne « Groupe » ; vide = cours commun.
+- Un seul fichier par format avec tous les cours ; le groupe termine le titre (« … — Groupe B »).
+- « TEMPS PERSONNEL », réunions et jours fériés sont conservés.
+- Un cours incomplet est exclu de l'export sans bloquer les autres ; les pauses sont ignorées.
 
-Correspond approximativement aux lots **L0 à L9 (partiel)** du plan de conception (sur 16 au
-total) : le moteur d'analyse, les trois exports obligatoires du MVP (§137), la persistance,
-l'orchestration, et une coquille WPF avec un seul écran fonctionnel (Accueil).
+Pas encore fait : thèmes clair et contraste système, écran Paramètres et Modèles, PDF balisé
+(accessibilité native), correction des cours par champ avec rapprochement entre versions d'un fichier,
+signature de l'exécutable.
 
-| Couche | Statut |
-|---|---|
-| `PlanningConverter.Domain` | ✅ Complet |
-| `PlanningConverter.Spreadsheet` (lecture Excel, NPOI) | ✅ Complet |
-| `PlanningConverter.Parsing` (moteur d'analyse) | ✅ Complet pour la disposition "section de jour" confirmée par le corpus réel |
-| `PlanningConverter.Validation` (doublons, chevauchements, confiance) | ✅ Complet |
-| `PlanningConverter.Export` (ICS, CSV, TXT) | ✅ Complet, **jamais compilé** — voir DEV_NOTES §4 |
-| `PlanningConverter.Storage` (paramètres, historique, autosave, modèles) | ✅ Complet ; modèles enregistrés pas encore consommés par le moteur |
-| `PlanningConverter.Application` (session, cas d'usage, composition) | ✅ Complet |
-| `PlanningConverter.Ui` (WPF) | 🟡 Coquille + écran Accueil fonctionnel ; le reste (V2-V12) reste à construire — voir DEV_NOTES §7 |
+## Obtenir l'exécutable
 
-## Build
+Onglet *Actions* du dépôt GitHub → dernière exécution réussie → artefact `PlanningConverter_win-x64`
+(autonome, aucun prérequis). Il n'est pas signé : Windows SmartScreen peut afficher un avertissement.
 
-Nécessite Visual Studio 2022+ (ou le SDK .NET 10 en ligne de commande) et un accès réseau à
-nuget.org — ce dépôt a été développé dans un environnement sans les deux, donc **jamais compilé
-ni testé pour de vrai**. Première étape sur une machine adéquate :
-
-```
-dotnet restore
-dotnet build
-dotnet test
-```
-
-Les tests de `PlanningConverter.Parsing.Tests` s'exécutent contre 3 fichiers Excel réels
-(`tests/PlanningConverter.Parsing.Tests/Fixtures/`) — **non anonymisés, voir DEV_NOTES §5**
-avant de partager ce dépôt.
+En local (Windows, SDK .NET 10) : `.\build.ps1` → `artifacts\windows-x64\PlanningConverter.exe`.
 
 ## Structure
 
 ```
 src/
-  PlanningConverter.Domain        — modèle métier, aucune dépendance externe
+  PlanningConverter.Domain        — modèle métier
   PlanningConverter.Spreadsheet   — lecture .xlsx/.xls (NPOI)
-  PlanningConverter.Parsing       — moteur d'analyse
+  PlanningConverter.Parsing       — analyse (sections de jour, colonnes, groupes)
   PlanningConverter.Validation    — doublons, chevauchements, confiance, statut
-  PlanningConverter.Export        — ICS, CSV, TXT
-  PlanningConverter.Storage       — paramètres, historique, autosave, modèles
-  PlanningConverter.Application   — session de conversion, cas d'usage, composition
-  PlanningConverter.Ui            — WPF (seul projet ciblant net10.0-windows)
+  PlanningConverter.Export        — ICS, CSV, TXT, PDF (écrits sans bibliothèque externe)
+  PlanningConverter.Storage       — paramètres, historique, sauvegarde automatique
+  PlanningConverter.Application   — session, cas d'usage, fusion de semaines
+  PlanningConverter.Ui            — WPF (seul projet net10.0-windows)
 tests/
-  PlanningConverter.Parsing.Tests — inclut le corpus réel (§110 du cahier des charges)
+  PlanningConverter.Parsing.Tests — corpus anonymisé (3 semaines + 1 semaine avec groupes)
   PlanningConverter.Export.Tests
 ```
+
+Les fichiers de test sont anonymisés (noms d'enseignants fictifs). Les originaux ne doivent jamais
+être déposés dans le dépôt.

@@ -155,3 +155,29 @@ Ajoutées après la première livraison :
    et un bouton "Analyser" qui reçoit le focus automatiquement.
 6. Prochaine étape naturelle : brancher `AnalyzeUseCase` sur le bouton "Analyser" (actuellement
    simulé, voir section 7) et construire l'écran d'aperçu (V4, §29-§30).
+
+## 9. Mise à jour du 5 novembre 2026 (reprise, lots 0 à 3 et suite)
+
+Cette section prévaut sur les paragraphes plus anciens quand ils se contredisent (en particulier
+§4 « jamais compilé » et §7 « Ui non commencée »).
+
+- **Groupes** : la colonne « Groupe » du fichier est la seule source (`GroupLabel.Normalize`).
+  P*/S* sont des salles (`DaySectionParser` ne les sépare plus de la colonne Salle).
+  Fixture : `EDT_MK4_SEMAINE_46_AVEC_GROUPES_NOV_2026.xlsx` (noms fictifs).
+- **Titre exporté** : `{UE} {Intitulé}` + ` — Enseignant` (selon le format) + ` — Groupe B` en dernier.
+- **Plusieurs fichiers** : `SessionMerger` ordonne les semaines, signale un trou (lundi–vendredi), garde le
+  fichier le plus récent si une semaine est en double (l'autre est ignorée, réintégrable), signale
+  plusieurs promotions.
+- **Reprise** : `ConversionSession.ToAutosaveJson/FromAutosaveJson`, avec `ReadOnlySetJsonConverterFactory`
+  (System.Text.Json ne relit pas `IReadOnlySet<T>` — découvert par `AutosaveRoundTripTests`). Une seule
+  sauvegarde reprenable ; une nouvelle analyse remplace les précédentes.
+- **PDF** : `PdfPlanningWriter` (PDF 1.4 écrit à la main, Helvetica 18 pt, texte sélectionnable, WinAnsi).
+  Non balisé : limite à documenter auprès des utilisateurs ; le TXT reste la sortie de référence pour
+  un lecteur d'écran. Largeurs de caractères approchées (marge de sécurité pour le gras) : à relire sur un
+  vrai PDF imprimé.
+- **Compilation** : aucune compilation locale possible (nuget.org bloqué dans l'environnement de
+  développement) ; tout passe par `.github/workflows/build.yml`.
+- **Non vérifié** : rendu WPF, focus clavier, annonces de la région live, comportement du glisser-déposer.
+- **Reste à faire** : thèmes clair/contraste système, Paramètres et Modèles, PDF balisé, corrections par
+  champ avec rapprochement entre versions d'un même fichier, signature de l'exécutable.
+
