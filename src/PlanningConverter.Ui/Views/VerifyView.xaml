@@ -1,0 +1,155 @@
+<UserControl x:Class="PlanningConverter.Ui.Views.VerifyView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:beh="clr-namespace:PlanningConverter.Ui.Behaviors"
+             xmlns:conv="clr-namespace:PlanningConverter.Ui.Converters"
+             Background="{StaticResource Brush.Background}">
+    <Grid Margin="32,24,32,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Vérifier le planning" Style="{StaticResource Style.Heading2}"
+                       AutomationProperties.HeadingLevel="Level1" Focusable="True"
+                       beh:FocusOnLoad.Enabled="True" />
+            <TextBlock Text="{Binding ContextText}" Style="{StaticResource Style.Subtitle}" Margin="0,4,0,0" />
+            <TextBlock Text="{Binding SummaryText}" Style="{StaticResource Style.Subtitle}" Margin="0,2,0,0" />
+            <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                <TextBlock Text="{Binding AttentionText}" FontWeight="SemiBold" VerticalAlignment="Center"
+                           Foreground="{StaticResource Brush.Warning}" Margin="0,0,16,0" />
+                <Button Content="Voir le premier" Command="{Binding ShowFirstIssueCommand}"
+                        Style="{StaticResource Style.SecondaryButton}"
+                        Visibility="{Binding HasAttention, Converter={x:Static conv:BoolToVisibilityConverter.Instance}}"
+                        AutomationProperties.Name="Aller au premier élément à vérifier" />
+            </StackPanel>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,16,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto" Focusable="False">
+                <ItemsControl ItemsSource="{Binding Days}" IsTabStop="False">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,0,0,16">
+                                <TextBlock Text="{Binding Header}" FontSize="18" FontWeight="SemiBold"
+                                           Foreground="{StaticResource Brush.TextPrimary}"
+                                           AutomationProperties.HeadingLevel="Level2" Margin="0,0,0,6" />
+                                <ItemsControl ItemsSource="{Binding Items}" IsTabStop="False">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border Background="{StaticResource Brush.Surface}" CornerRadius="8"
+                                                    Padding="14,10" Margin="0,0,0,6"
+                                                    AutomationProperties.Name="{Binding AccessibleName}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="150" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding TimeText}" FontWeight="SemiBold" FontSize="15"
+                                                               Foreground="{StaticResource Brush.TextPrimary}" VerticalAlignment="Top" />
+                                                    <StackPanel Grid.Column="1" Margin="8,0">
+                                                        <TextBlock Text="{Binding TitleText}" FontSize="15" TextWrapping="Wrap"
+                                                                   Foreground="{StaticResource Brush.TextPrimary}" />
+                                                        <TextBlock Text="{Binding DetailText}" FontSize="13" TextWrapping="Wrap"
+                                                                   Foreground="{StaticResource Brush.TextSecondary}"
+                                                                   Visibility="{Binding HasDetail, Converter={x:Static conv:BoolToVisibilityConverter.Instance}}" />
+                                                        <TextBlock Text="{Binding StatusText}" FontSize="13" FontWeight="SemiBold"
+                                                                   Foreground="{StaticResource Brush.Warning}"
+                                                                   Visibility="{Binding HasStatus, Converter={x:Static conv:BoolToVisibilityConverter.Instance}}" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                                        <Button Content="{Binding EditButtonText}"
+                                                                Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource Style.SecondaryButton}" Margin="0,0,8,0"
+                                                                AutomationProperties.Name="{Binding EditLabel}" />
+                                                        <Button Content="{Binding IgnoreButtonText}"
+                                                                Command="{Binding DataContext.ToggleIgnoreCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Style="{StaticResource Style.SecondaryButton}"
+                                                                AutomationProperties.Name="{Binding IgnoreLabel}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+
+            <!-- Panneau de correction -->
+            <Border Grid.Column="1" Width="360" Margin="16,0,0,0" Padding="20"
+                    Background="{StaticResource Brush.Surface}" CornerRadius="12"
+                    Visibility="{Binding Editing, Converter={x:Static conv:NullObjectToVisibilityConverter.Instance}}">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel DataContext="{Binding Editing}">
+                        <TextBlock Text="{Binding Heading}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"
+                                   Foreground="{StaticResource Brush.TextPrimary}"
+                                   AutomationProperties.HeadingLevel="Level2" Focusable="True"
+                                   beh:FocusOnLoad.Enabled="True" />
+                        <TextBlock Text="Source dans le fichier :" Style="{StaticResource Style.Label}" />
+                        <TextBlock Text="{Binding SourceText}" TextWrapping="Wrap" FontSize="13"
+                                   Foreground="{StaticResource Brush.TextSecondary}" />
+
+                        <TextBlock Text="Code UE" Style="{StaticResource Style.Label}" />
+                        <TextBox Text="{Binding Ue, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource Style.TextBox}"
+                                 AutomationProperties.Name="Code UE" />
+                        <TextBlock Text="Intitulé" Style="{StaticResource Style.Label}" />
+                        <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource Style.TextBox}"
+                                 AutomationProperties.Name="Intitulé" />
+                        <TextBlock Text="Heure de début (ex. 08:30)" Style="{StaticResource Style.Label}" />
+                        <TextBox Text="{Binding StartText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource Style.TextBox}"
+                                 AutomationProperties.Name="Heure de début" />
+                        <TextBlock Text="Heure de fin (ex. 10:30)" Style="{StaticResource Style.Label}" />
+                        <TextBox Text="{Binding EndText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource Style.TextBox}"
+                                 AutomationProperties.Name="Heure de fin" />
+                        <TextBlock Text="Enseignant" Style="{StaticResource Style.Label}" />
+                        <TextBox Text="{Binding Teacher, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource Style.TextBox}"
+                                 AutomationProperties.Name="Enseignant" />
+                        <TextBlock Text="Salle" Style="{StaticResource Style.Label}" />
+                        <TextBox Text="{Binding Room, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource Style.TextBox}"
+                                 AutomationProperties.Name="Salle" />
+                        <TextBlock Text="Notes" Style="{StaticResource Style.Label}" />
+                        <TextBox Text="{Binding Notes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource Style.TextBox}"
+                                 AutomationProperties.Name="Notes" />
+
+                        <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource Brush.Error}" FontWeight="SemiBold"
+                                   TextWrapping="Wrap" Margin="0,12,0,0"
+                                   Visibility="{Binding ErrorMessage, Converter={x:Static conv:NullToVisibilityConverter.Instance}}" />
+
+                        <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
+                            <Button Content="Enregistrer" Command="{Binding SaveCommand}" IsDefault="True"
+                                    Style="{StaticResource Style.PrimaryButton}" Margin="0,0,8,0" />
+                            <Button Content="Annuler" Command="{Binding CancelCommand}" IsCancel="True"
+                                    Style="{StaticResource Style.SecondaryButton}" />
+                        </StackPanel>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <StackPanel Grid.Row="2" Margin="0,16,0,0">
+            <TextBlock Text="{Binding ExportText}" Foreground="{StaticResource Brush.TextSecondary}" FontSize="14" Margin="0,0,0,8" />
+            <StackPanel Orientation="Horizontal">
+                <Button Content="Choisir les formats" Command="{Binding ChooseFormatsCommand}"
+                        Style="{StaticResource Style.PrimaryButton}" Margin="0,0,12,0"
+                        AutomationProperties.Name="Passer à l'étape suivante : choisir les formats d'export" />
+                <Button Content="Annuler la dernière modification" Command="{Binding UndoCommand}"
+                        Style="{StaticResource Style.SecondaryButton}" Margin="0,0,8,0" />
+                <Button Content="Rétablir" Command="{Binding RedoCommand}"
+                        Style="{StaticResource Style.SecondaryButton}" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

@@ -149,20 +149,30 @@ public static partial class FileNaming
 /// <summary>Construit le titre affiché selon le format choisi (§38).</summary>
 public static class TitleBuilder
 {
-    public static string Build(ScheduleEvent ev, TitleFormat format)
+    /// <summary>
+    /// Intitulé exact du cours tel que le secrétariat l'écrit : code UE d'origine (ex. « UE18 »)
+    /// suivi de l'intitulé. Le code est détaché à l'analyse pour la recherche, jamais perdu ni doublé.
+    /// </summary>
+    public static string ExactTitle(ScheduleEvent ev)
     {
         var title = ev.Title ?? "";
+        return string.IsNullOrWhiteSpace(ev.Ue) ? title : $"{ev.Ue} {title}".Trim();
+    }
+
+    public static string Build(ScheduleEvent ev, TitleFormat format)
+    {
+        var exact = ExactTitle(ev);
         return format switch
         {
-            TitleFormat.Simple => title,
-            TitleFormat.CourseDashTeacher => string.IsNullOrWhiteSpace(ev.Teacher) ? title : $"{title} — {ev.Teacher}",
-            TitleFormat.UeDashCourse => string.IsNullOrWhiteSpace(ev.Ue) ? title : $"{ev.Ue} — {title}",
-            _ => title
+            TitleFormat.Simple => exact,
+            TitleFormat.CourseDashTeacher => string.IsNullOrWhiteSpace(ev.Teacher) ? exact : $"{exact} — {ev.Teacher}",
+            TitleFormat.UeDashCourse => string.IsNullOrWhiteSpace(ev.Ue) ? (ev.Title ?? "") : $"{ev.Ue} — {ev.Title}",
+            _ => exact
         };
     }
 }
 
-/// <summary>§39 : construit la description en omettant les champs absents.</summary>
+/// <summary>§39 : construit la description en omettant les champs absents (le code UE figure déjà dans le titre).</summary>
 public static class DescriptionBuilder
 {
     public static string Build(ScheduleEvent ev)
@@ -170,7 +180,6 @@ public static class DescriptionBuilder
         var lines = new List<string>();
         if (!string.IsNullOrWhiteSpace(ev.Teacher)) lines.Add($"Enseignant : {ev.Teacher}");
         if (!string.IsNullOrWhiteSpace(ev.Room)) lines.Add($"Salle : {ev.Room}");
-        if (!string.IsNullOrWhiteSpace(ev.Ue)) lines.Add($"UE : {ev.Ue}");
         if (!string.IsNullOrWhiteSpace(ev.Group)) lines.Add($"Groupe : {ev.Group}");
         if (!string.IsNullOrWhiteSpace(ev.Notes)) lines.Add(ev.Notes);
         return string.Join('\n', lines);

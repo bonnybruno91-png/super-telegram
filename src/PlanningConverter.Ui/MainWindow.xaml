@@ -13,6 +13,47 @@
         <DataTemplate DataType="{x:Type vm:HomeViewModel}">
             <views:HomeView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AnalyzingViewModel}">
+            <views:AnalyzingView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:VerifyViewModel}">
+            <views:VerifyView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ExportViewModel}">
+            <views:ExportView />
+        </DataTemplate>
+
+        <!-- Pastille d'étape : le texte dit toujours « étape N sur 3 », la couleur ne porte pas seule le sens. -->
+        <Style x:Key="StepText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Brush.TextSecondary}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Margin" Value="0,0,24,0" />
+        </Style>
+
+        <Style x:Key="StepImport" TargetType="TextBlock" BasedOn="{StaticResource StepText}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsStepImport}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource Brush.Accent}" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="StepVerify" TargetType="TextBlock" BasedOn="{StaticResource StepText}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsStepVerify}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource Brush.Accent}" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="StepExport" TargetType="TextBlock" BasedOn="{StaticResource StepText}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsStepExport}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource Brush.Accent}" />
+                    <Setter Property="FontWeight" Value="Bold" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
 
         <Style x:Key="NavItem" TargetType="Button">
             <Setter Property="HorizontalContentAlignment" Value="Left" />
@@ -59,26 +100,45 @@
                 <TextBlock Text="Planning Converter" FontWeight="SemiBold" FontSize="16"
                            Margin="20,24,20,24" Foreground="{StaticResource Brush.TextPrimary}" />
 
-                <Button Content="🏠  Accueil" Style="{StaticResource NavItem}" Margin="12,0,12,4"
-                        AutomationProperties.Name="Accueil" />
-                <Button Content="🕑  Historique" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                <Button Content="Nouvelle conversion" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                        Command="{Binding NewConversionCommand}"
+                        AutomationProperties.Name="Nouvelle conversion" />
+                <Button Content="Historique" Style="{StaticResource NavItem}" Margin="12,0,12,4"
                         IsEnabled="False" AutomationProperties.Name="Historique — pas encore disponible" />
-                <Button Content="📐  Modèles" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                <Button Content="Modèles" Style="{StaticResource NavItem}" Margin="12,0,12,4"
                         IsEnabled="False" AutomationProperties.Name="Modèles — pas encore disponible" />
-                <Button Content="⚙️  Paramètres" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                <Button Content="Paramètres" Style="{StaticResource NavItem}" Margin="12,0,12,4"
                         IsEnabled="False" AutomationProperties.Name="Paramètres — pas encore disponible" />
-                <Button Content="❓  Aide" Style="{StaticResource NavItem}" Margin="12,0,12,4"
+                <Button Content="Aide" Style="{StaticResource NavItem}" Margin="12,0,12,4"
                         IsEnabled="False" AutomationProperties.Name="Aide — pas encore disponible" />
             </StackPanel>
 
             <!-- Zone de contenu : une seule vue à la fois. -->
-            <ContentControl Grid.Column="1" Content="{Binding CurrentView}" Focusable="False" />
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- Stepper Importer / Vérifier / Exporter -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="32,16,32,0"
+                            AutomationProperties.Name="Étapes de la conversion">
+                    <TextBlock Text="1. Importer" Style="{StaticResource StepImport}"
+                               AutomationProperties.Name="Étape 1 sur 3 : importer" />
+                    <TextBlock Text="2. Vérifier" Style="{StaticResource StepVerify}"
+                               AutomationProperties.Name="Étape 2 sur 3 : vérifier" />
+                    <TextBlock Text="3. Exporter" Style="{StaticResource StepExport}"
+                               AutomationProperties.Name="Étape 3 sur 3 : exporter" />
+                </StackPanel>
+
+                <ContentControl Grid.Row="1" Content="{Binding CurrentView}" Focusable="False" />
+            </Grid>
         </Grid>
 
         <!-- Barre de statut / région live (§64) : annoncée aux lecteurs d'écran à chaque changement. -->
         <Border Grid.Row="1" Background="{StaticResource Brush.Surface}" BorderBrush="{StaticResource Brush.Border}"
                 BorderThickness="0,1,0,0" Padding="20,10">
-            <TextBlock Text="{Binding StatusMessage}"
+            <TextBlock x:Name="StatusText" Text="{Binding StatusMessage}"
                        Foreground="{StaticResource Brush.TextSecondary}" FontSize="13"
                        AutomationProperties.LiveSetting="Polite" />
         </Border>

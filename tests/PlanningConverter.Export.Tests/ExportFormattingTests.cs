@@ -51,14 +51,14 @@ public class TitleBuilderTests
     public void Default_format_is_course_dash_teacher()
     {
         var ev = MakeEvent("Neurologie", "Dr Martin", "UE18");
-        Assert.Equal("Neurologie — Dr Martin", TitleBuilder.Build(ev, TitleFormat.CourseDashTeacher));
+        Assert.Equal("UE18 Neurologie — Dr Martin", TitleBuilder.Build(ev, TitleFormat.CourseDashTeacher));
     }
 
     [Fact]
     public void Falls_back_to_title_alone_when_teacher_missing()
     {
         var ev = MakeEvent("Neurologie", null, "UE18");
-        Assert.Equal("Neurologie", TitleBuilder.Build(ev, TitleFormat.CourseDashTeacher));
+        Assert.Equal("UE18 Neurologie", TitleBuilder.Build(ev, TitleFormat.CourseDashTeacher));
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class DescriptionBuilderTests
         };
 
         var description = DescriptionBuilder.Build(ev);
-        Assert.Equal("Enseignant : Dr Martin\nUE : UE18", description);
+        Assert.Equal("Enseignant : Dr Martin", description);
         Assert.DoesNotContain("Salle", description);
         Assert.DoesNotContain("Groupe", description);
     }

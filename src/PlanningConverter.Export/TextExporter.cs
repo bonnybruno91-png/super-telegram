@@ -47,17 +47,16 @@ public static class PlanningTextFormatter
     {
         var sb = new StringBuilder();
         sb.Append($"{TimeRange(ev)}\n");
-        sb.Append($"{ev.Title}\n");
+        sb.Append($"{TitleBuilder.ExactTitle(ev)}\n");
         if (!string.IsNullOrWhiteSpace(ev.Teacher)) sb.Append($"Enseignant : {ev.Teacher}\n");
         if (!string.IsNullOrWhiteSpace(ev.Room)) sb.Append($"Salle : {ev.Room}\n");
-        if (!string.IsNullOrWhiteSpace(ev.Ue)) sb.Append($"UE : {ev.Ue}\n");
         sb.Append('\n');
         return sb.ToString();
     }
 
     private static string FormatCompact(ScheduleEvent ev)
     {
-        var parts = new List<string> { ev.Title ?? "" };
+        var parts = new List<string> { TitleBuilder.ExactTitle(ev) };
         if (!string.IsNullOrWhiteSpace(ev.Teacher)) parts.Add(ev.Teacher);
         if (!string.IsNullOrWhiteSpace(ev.Room)) parts.Add($"Salle {ev.Room}");
         return $"{TimeRangeCompact(ev)} : {string.Join(" — ", parts)}\n";
