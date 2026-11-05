@@ -38,7 +38,7 @@
                         <!-- Libellé qui change au survol d'un fichier glissé (§10.3) : deux TextBlock
                              dont la visibilité bascule sur IsDragOver, plus simple et plus fiable ici
                              qu'un convertisseur texte inline. -->
-                        <TextBlock Text="Déposez votre fichier Excel ici" Style="{StaticResource Style.Subtitle}"
+                        <TextBlock Text="Déposez vos fichiers Excel ici" Style="{StaticResource Style.Subtitle}"
                                    TextAlignment="Center" Margin="0,0,0,32"
                                    Visibility="{Binding IsDragOver, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instance}}" />
                         <TextBlock Text="Déposer pour analyser" Style="{StaticResource Style.Subtitle}"
@@ -49,12 +49,12 @@
                         <!-- Avant sélection : bouton d'action principale. -->
                         <StackPanel Visibility="{Binding HasSelectedFile, Converter={x:Static conv:InverseBoolToVisibilityConverter.Instance}}"
                                     HorizontalAlignment="Center">
-                            <Button Content="Sélectionner un fichier"
+                            <Button Content="Sélectionner des fichiers"
                                     Style="{StaticResource Style.PrimaryButton}"
                                     Command="{Binding SelectFileCommand}"
-                                    AutomationProperties.Name="Sélectionner un fichier Excel à convertir"
+                                    AutomationProperties.Name="Sélectionner un ou plusieurs fichiers Excel à convertir"
                                     HorizontalAlignment="Center" />
-                            <TextBlock Text="Formats acceptés : XLSX et XLS"
+                            <TextBlock Text="Un fichier par semaine. Formats acceptés : XLSX et XLS"
                                        Foreground="{StaticResource Brush.TextSecondary}"
                                        FontSize="13" TextAlignment="Center" Margin="0,16,0,0" />
                         </StackPanel>
@@ -70,12 +70,15 @@
                                        TextAlignment="Center" Margin="0,4,0,20">
                                 <Run Text="{Binding SelectedFileSizeText, Mode=OneWay}" />
                             </TextBlock>
+                            <TextBlock Text="{Binding SelectedFileList}" Foreground="{StaticResource Brush.TextSecondary}"
+                                       FontSize="13" TextAlignment="Center" Margin="0,0,0,20" TextWrapping="Wrap"
+                                       Visibility="{Binding SelectedFileList, Converter={x:Static conv:NullToVisibilityConverter.Instance}}" />
                             <Button x:Name="AnalyzeButton" Content="Analyser"
                                     Style="{StaticResource Style.PrimaryButton}"
                                     Command="{Binding AnalyzeCommand}"
-                                    AutomationProperties.Name="Analyser le fichier sélectionné"
+                                    AutomationProperties.Name="Analyser les fichiers sélectionnés"
                                     HorizontalAlignment="Center" />
-                            <Button Content="Choisir un autre fichier" Command="{Binding SelectFileCommand}"
+                            <Button Content="Choisir d'autres fichiers" Command="{Binding SelectFileCommand}"
                                     Background="Transparent" Foreground="{StaticResource Brush.Accent}"
                                     BorderThickness="0" Margin="0,12,0,0" Cursor="Hand"
                                     HorizontalAlignment="Center" />

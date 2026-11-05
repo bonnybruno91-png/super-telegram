@@ -12,11 +12,20 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0">
-            <TextBlock Text="Vérifier le planning" Style="{StaticResource Style.Heading2}"
+            <TextBlock x:Name="PageHeading" Text="Vérifier le planning" Style="{StaticResource Style.Heading2}"
                        AutomationProperties.HeadingLevel="Level1" Focusable="True"
                        beh:FocusOnLoad.Enabled="True" />
             <TextBlock Text="{Binding ContextText}" Style="{StaticResource Style.Subtitle}" Margin="0,4,0,0" />
             <TextBlock Text="{Binding SummaryText}" Style="{StaticResource Style.Subtitle}" Margin="0,2,0,0" />
+            <Border Background="{StaticResource Brush.Surface}" CornerRadius="8" Padding="12,8" Margin="0,8,0,0"
+                    Visibility="{Binding HasNotices, Converter={x:Static conv:BoolToVisibilityConverter.Instance}}">
+                <StackPanel>
+                    <TextBlock Text="À savoir sur les fichiers" FontWeight="SemiBold"
+                               Foreground="{StaticResource Brush.Warning}" AutomationProperties.HeadingLevel="Level2" />
+                    <TextBlock Text="{Binding NoticesText}" TextWrapping="Wrap"
+                               Foreground="{StaticResource Brush.TextPrimary}" Margin="0,4,0,0" />
+                </StackPanel>
+            </Border>
             <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                 <TextBlock Text="{Binding AttentionText}" FontWeight="SemiBold" VerticalAlignment="Center"
                            Foreground="{StaticResource Brush.Warning}" Margin="0,0,16,0" />
@@ -94,10 +103,9 @@
                     Visibility="{Binding Editing, Converter={x:Static conv:NullObjectToVisibilityConverter.Instance}}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel DataContext="{Binding Editing}">
-                        <TextBlock Text="{Binding Heading}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"
+                        <TextBlock x:Name="EditHeading" Text="{Binding Heading}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"
                                    Foreground="{StaticResource Brush.TextPrimary}"
-                                   AutomationProperties.HeadingLevel="Level2" Focusable="True"
-                                   beh:FocusOnLoad.Enabled="True" />
+                                   AutomationProperties.HeadingLevel="Level2" Focusable="True" />
                         <TextBlock Text="Source dans le fichier :" Style="{StaticResource Style.Label}" />
                         <TextBlock Text="{Binding SourceText}" TextWrapping="Wrap" FontSize="13"
                                    Foreground="{StaticResource Brush.TextSecondary}" />

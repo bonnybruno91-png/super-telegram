@@ -20,6 +20,9 @@ public sealed record AnalysisResult
     public required IReadOnlyList<ScheduleEvent> Events { get; init; }
     public required IReadOnlyList<TraceEntry> Trace { get; init; }
 
+    /// <summary>Remarques sur l'ensemble des fichiers importés (semaine manquante, en double, promotion différente).</summary>
+    public IReadOnlyList<string> Notices { get; init; } = [];
+
     public int TotalCount => Events.Count(e => e.Status != EventStatus.Ignored);
     public int ValidCount => Events.Count(e => e.Status == EventStatus.Valid);
     public int WarningCount => Events.Count(e => e.Status == EventStatus.Warning);

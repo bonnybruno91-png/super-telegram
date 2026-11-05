@@ -1,3 +1,4 @@
+using PlanningConverter.Application;
 using PlanningConverter.Domain;
 using PlanningConverter.Spreadsheet;
 using PlanningConverter.Validation;
@@ -201,4 +202,69 @@ public class GroupLabelTests
     [Fact]
     public void Unrecognized_text_is_kept_as_is() =>
         Assert.Equal("Demi-promotion nord", GroupLabel.Normalize("Demi-promotion nord"));
+}
+
+public class SessionMergerTests
+{
+    private static AnalyzedFile Week(string name, DateOnly start, DateTime written, string title = "COURS")
+    {
+        var ev = new ScheduleEvent
+        {
+            Id = Guid.NewGuid(), Uid = name + title, SourceFile = name, SourceSheet = "A", SourceRow = 1,
+            SourceCells = [], OriginalContent = "", Date = start, Day = start.DayOfWeek,
+            StartTime = new TimeOnly(8, 0), EndTime = new TimeOnly(10, 0), Title = title,
+            Issues = [], InferredFields = new HashSet<string>(),
+        };
+        return new AnalyzedFile(name, written, new AnalysisResult
+        {
+            SourceFile = name, SheetName = "A", PlanningName = "MK4",
+            PeriodStart = start, PeriodEnd = start.AddDays(4), Events = [ev], Trace = [],
+        });
+    }
+
+    private static readonly DateTime T0 = new(2026, 11, 1, 0, 0, 0, DateTimeKind.Utc);
+
+    [Fact]
+    public void Merges_two_consecutive_weeks_in_chronological_order_without_notice()
+    {
+        var merged = SessionMerger.Merge([
+            Week("b.xlsx", new DateOnly(2026, 11, 16), T0, "B"),
+            Week("a.xlsx", new DateOnly(2026, 11, 9), T0, "A")]);
+
+        Assert.Equal(["A", "B"], merged.Events.Select(e => e.Title).ToArray());
+        Assert.Equal(new DateOnly(2026, 11, 9), merged.PeriodStart);
+        Assert.Equal(new DateOnly(2026, 11, 20), merged.PeriodEnd);
+        Assert.Empty(merged.Notices);
+    }
+
+    [Fact]
+    public void Reports_missing_week_between_two_files()
+    {
+        var merged = SessionMerger.Merge([
+            Week("a.xlsx", new DateOnly(2026, 11, 9), T0),
+            Week("c.xlsx", new DateOnly(2026, 11, 23), T0)]);
+
+        var notice = Assert.Single(merged.Notices);
+        Assert.Contains("16 novembre 2026", notice);
+        Assert.Contains("22 novembre 2026", notice);
+    }
+
+    [Fact]
+    public void Same_week_twice_keeps_most_recent_file_and_ignores_the_other()
+    {
+        var merged = SessionMerger.Merge([
+            Week("vieux.xlsx", new DateOnly(2026, 11, 9), T0, "VIEUX"),
+            Week("recent.xlsx", new DateOnly(2026, 11, 9), T0.AddDays(2), "RECENT")]);
+
+        Assert.Equal(EventStatus.Ignored, merged.Events.Single(e => e.Title == "VIEUX").Status);
+        Assert.NotEqual(EventStatus.Ignored, merged.Events.Single(e => e.Title == "RECENT").Status);
+        Assert.Contains(merged.Notices, n => n.Contains("recent.xlsx") && n.Contains("vieux.xlsx"));
+    }
+
+    [Fact]
+    public void Single_file_is_returned_unchanged()
+    {
+        var one = Week("a.xlsx", new DateOnly(2026, 11, 9), T0);
+        Assert.Same(one.Result, SessionMerger.Merge([one]));
+    }
 }

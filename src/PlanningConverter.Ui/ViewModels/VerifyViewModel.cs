@@ -19,12 +19,15 @@ public sealed partial class VerifyViewModel : ObservableObject
     private readonly ConversionSession _session;
     private readonly Action _goToExport;
     private readonly Action<string> _announce;
+    private readonly int _fileCount;
 
     public ObservableCollection<DayGroupViewModel> Days { get; } = [];
 
     [ObservableProperty] private string summaryText = "";
     [ObservableProperty] private string exportText = "";
     [ObservableProperty] private string attentionText = "";
+    [ObservableProperty] private string noticesText = "";
+    [ObservableProperty] private bool hasNotices;
     [ObservableProperty] private bool hasAttention;
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(ChooseFormatsCommand))] private bool canExport;
     [ObservableProperty] private bool isEmpty;
@@ -33,8 +36,9 @@ public sealed partial class VerifyViewModel : ObservableObject
     public string FileName { get; }
     public string ContextText { get; private set; } = "";
 
-    public VerifyViewModel(ConversionSession session, Action goToExport, Action<string> announce)
+    public VerifyViewModel(ConversionSession session, int fileCount, Action goToExport, Action<string> announce)
     {
+        _fileCount = fileCount;
         _session = session;
         _goToExport = goToExport;
         _announce = announce;
@@ -67,8 +71,11 @@ public sealed partial class VerifyViewModel : ObservableObject
         }
 
         var promo = result.PlanningName ?? "Promotion non identifiée";
+        NoticesText = string.Join("\n", result.Notices);
+        HasNotices = result.Notices.Count > 0;
+
         ContextText = result.PeriodStart is { } s && result.PeriodEnd is { } e
-            ? $"{promo}  •  du {s.ToString("d MMMM", Fr)} au {e.ToString("d MMMM yyyy", Fr)}"
+            ? $"{promo}  •  du {s.ToString("d MMMM", Fr)} au {e.ToString("d MMMM yyyy", Fr)}" + (_fileCount > 1 ? $"  •  {_fileCount} fichiers" : "")
             : promo;
         OnPropertyChanged(nameof(ContextText));
 

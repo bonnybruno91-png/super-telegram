@@ -16,6 +16,7 @@ public sealed partial class MainViewModel : ObservableObject
     private CancellationTokenSource? _analysisCts;
     private ConversionSession? _session;
     private VerifyViewModel? _verify;
+    private int _fileCount = 1;
 
     [ObservableProperty] private object? currentView;
     [ObservableProperty] private string statusMessage = "";
@@ -49,42 +50,63 @@ public sealed partial class MainViewModel : ObservableObject
     private void ShowHome(string? error = null)
     {
         SetStep(true, false, false);
-        var home = new HomeViewModel(_services, path => _ = StartAnalysisAsync(path));
+        var home = new HomeViewModel(_services, paths => _ = StartAnalysisAsync(paths));
         if (error is not null) home.ErrorMessage = error;
         CurrentView = home;
     }
 
     private void Announce(string message) => StatusMessage = message;
 
-    private async Task StartAnalysisAsync(string path)
+    private async Task StartAnalysisAsync(IReadOnlyList<string> paths)
     {
         _analysisCts?.Cancel();
         var cts = _analysisCts = new CancellationTokenSource();
 
-        var analyzing = new AnalyzingViewModel(Path.GetFileName(path), () => cts.Cancel());
+        var label = paths.Count == 1 ? Path.GetFileName(paths[0]) : $"{paths.Count} fichiers";
+        var analyzing = new AnalyzingViewModel(label, () => cts.Cancel());
         SetStep(true, false, false);
         CurrentView = analyzing;
-        Announce($"Analyse de {analyzing.FileName} en cours.");
-
-        var progress = new Progress<AnalysisProgress>(p => analyzing.Stage = p.Stage);
+        Announce($"Analyse de {label} en cours.");
 
         try
         {
-            var opened = await Task.Run(() => _services.OpenWorkbook.Execute(path), cts.Token);
-            var sheet = opened.SheetScores.FirstOrDefault(s => s.IsCandidate);
-            if (sheet is null)
+            var analyzed = new List<AnalyzedFile>();
+            var hashes = new List<string>();
+
+            for (var i = 0; i < paths.Count; i++)
             {
-                ShowHome("Aucune feuille de ce classeur ne ressemble à un planning. Vérifiez le fichier choisi.");
-                Announce("Analyse impossible : aucune feuille de planning trouvée.");
-                return;
+                var path = paths[i];
+                var name = Path.GetFileName(path);
+                var prefix = paths.Count > 1 ? $"Fichier {i + 1} sur {paths.Count} : " : "";
+                var progress = new Progress<AnalysisProgress>(p => analyzing.Stage = prefix + p.Stage);
+
+                var opened = await Task.Run(() => _services.OpenWorkbook.Execute(path), cts.Token);
+                var sheet = opened.SheetScores.FirstOrDefault(s => s.IsCandidate);
+                if (sheet is null)
+                {
+                    ShowHome($"Aucune feuille de « {name} » ne ressemble à un planning. Vérifiez le fichier choisi.");
+                    Announce($"Analyse impossible : aucune feuille de planning dans {name}.");
+                    return;
+                }
+
+                var session = await _services.Analyze.ExecuteAsync(
+                    path, opened.FileHash, sheet.SheetName, progress, cts.Token);
+                analyzed.Add(new AnalyzedFile(path, File.GetLastWriteTimeUtc(path), session.Current));
+                hashes.Add(opened.FileHash);
             }
 
-            var session = await _services.Analyze.ExecuteAsync(
-                path, opened.FileHash, sheet.SheetName, progress, cts.Token);
+            var merged = SessionMerger.Merge(analyzed);
+            var combinedHash = hashes.Count == 1
+                ? hashes[0]
+                : Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
+                    System.Text.Encoding.UTF8.GetBytes(string.Join("+", hashes))));
 
-            _session = session;
+            _session = new ConversionSession(paths[0], combinedHash, merged);
+            _fileCount = paths.Count;
+            _verify = null;
             ShowVerify();
-            Announce(session.Current.StatusAnnouncement());
+            var notice = merged.Notices.Count > 0 ? $" {merged.Notices.Count} remarque{(merged.Notices.Count > 1 ? "s" : "")} sur les fichiers." : "";
+            Announce(merged.StatusAnnouncement() + notice);
         }
         catch (OperationCanceledException)
         {
@@ -98,7 +120,7 @@ public sealed partial class MainViewModel : ObservableObject
         }
         catch (IOException ex)
         {
-            ShowHome("Le fichier n'a pas pu être lu : " + ex.Message);
+            ShowHome("Un fichier n'a pas pu être lu : " + ex.Message);
             Announce("Analyse impossible : fichier illisible.");
         }
     }
@@ -107,7 +129,7 @@ public sealed partial class MainViewModel : ObservableObject
     {
         if (_session is null) return;
         SetStep(false, true, false);
-        _verify ??= new VerifyViewModel(_session, ShowExport, Announce);
+        _verify ??= new VerifyViewModel(_session, _fileCount, ShowExport, Announce);
         CurrentView = _verify;
     }
 

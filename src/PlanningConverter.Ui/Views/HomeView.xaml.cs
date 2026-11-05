@@ -46,7 +46,7 @@ public partial class HomeView : UserControl
         if (!e.Data.GetDataPresent(DataFormats.FileDrop)) return;
         if (e.Data.GetData(DataFormats.FileDrop) is not string[] { Length: > 0 } files) return;
 
-        vm.AcceptFile(files[0]);
+        vm.AcceptFiles(files);
     }
 
     private void UpdateDragState(DragEventArgs e)
