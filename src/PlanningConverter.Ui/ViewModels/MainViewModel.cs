@@ -83,7 +83,7 @@ public sealed partial class MainViewModel : ObservableObject
             var session = json is null ? null : ConversionSession.FromAutosaveJson(json);
             return session is { Current.Events.Count: > 0 } ? session : null;
         }
-        catch (Exception ex) when (ex is System.Text.Json.JsonException or IOException or UnauthorizedAccessException)
+        catch (Exception ex) when (ex is System.Text.Json.JsonException or NotSupportedException or IOException or UnauthorizedAccessException)
         {
             return null; // une sauvegarde illisible ne doit jamais empêcher de démarrer
         }

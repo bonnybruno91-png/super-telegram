@@ -103,12 +103,17 @@ public sealed class ConversionSession
     public void MarkSaved() => IsDirty = false;
 
     /// <summary>Sérialisation pour la sauvegarde automatique (§105).</summary>
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        Converters = { new ReadOnlySetJsonConverterFactory() },
+    };
+
     public string ToAutosaveJson() => JsonSerializer.Serialize(new AutosaveSnapshot(
-        SessionId, SourceFilePath, SourceFileHash, Current, DateTimeOffset.Now));
+        SessionId, SourceFilePath, SourceFileHash, Current, DateTimeOffset.Now), JsonOptions);
 
     public static ConversionSession? FromAutosaveJson(string json)
     {
-        var snapshot = JsonSerializer.Deserialize<AutosaveSnapshot>(json);
+        var snapshot = JsonSerializer.Deserialize<AutosaveSnapshot>(json, JsonOptions);
         if (snapshot is null) return null;
         // Même identifiant : la sauvegarde reprise continue d'écraser la même sauvegarde (pas de doublon).
         return new ConversionSession(snapshot.SessionId, snapshot.SourceFilePath, snapshot.SourceFileHash, snapshot.Result);
