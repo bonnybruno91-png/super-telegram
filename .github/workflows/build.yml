@@ -9,6 +9,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -65,3 +67,14 @@ jobs:
           name: resultats-tests
           path: TestResults/*.trx
           if-no-files-found: warn
+
+      # Brouillon de release (non public) : permet de récupérer l'exécutable avec un compte GitHub
+      # authentifié sans passer par la page « Artifacts ». Seulement sur la branche de développement.
+      - name: Brouillon de release avec l'exécutable
+        if: github.ref == 'refs/heads/planning-converter' && success()
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "build-${{ github.run_number }}" PlanningConverter_win-x64.zip --draft --target "${{ github.sha }}" --title "Build ${{ github.run_number }}" --notes "Exécutable non signé (commit ${{ github.sha }})."
+
