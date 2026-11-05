@@ -84,6 +84,12 @@
                                     HorizontalAlignment="Center" />
                         </StackPanel>
 
+                        <!-- Reprise de la dernière conversion (sauvegarde automatique) -->
+                        <Button Command="{Binding ResumeCommand}" Content="{Binding ResumeText}"
+                                Style="{StaticResource Style.SecondaryButton}" HorizontalAlignment="Center" Margin="0,24,0,0"
+                                Visibility="{Binding CanResume, Converter={x:Static conv:BoolToVisibilityConverter.Instance}}"
+                                AutomationProperties.Name="Reprendre la dernière conversion enregistrée automatiquement" />
+
                         <!-- Erreur de format (§83) : jamais seulement une bordure rouge, toujours un mot. -->
                         <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource Brush.Error}"
                                    FontWeight="SemiBold" TextAlignment="Center" Margin="0,16,0,0"

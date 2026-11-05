@@ -12,6 +12,9 @@ public interface IAutosaveStore
     string? TryLoad(string sessionId);
     void Clear(string sessionId);
     IReadOnlyList<string> ListPendingSessions();
+
+    /// <summary>Identifiant de la sauvegarde la plus récente, ou null.</summary>
+    string? MostRecentSessionId();
 }
 
 public sealed class FileAutosaveStore(StoragePaths paths) : IAutosaveStore
@@ -42,4 +45,12 @@ public sealed class FileAutosaveStore(StoragePaths paths) : IAutosaveStore
         Directory.Exists(paths.AutosaveFolder)
             ? Directory.GetFiles(paths.AutosaveFolder, "*.json").Select(Path.GetFileNameWithoutExtension).Where(n => n is not null).Select(n => n!).ToList()
             : [];
+
+    public string? MostRecentSessionId() =>
+        Directory.Exists(paths.AutosaveFolder)
+            ? Directory.GetFiles(paths.AutosaveFolder, "*.json")
+                .OrderByDescending(File.GetLastWriteTimeUtc)
+                .Select(Path.GetFileNameWithoutExtension)
+                .FirstOrDefault()
+            : null;
 }

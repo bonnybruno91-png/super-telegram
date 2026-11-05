@@ -16,6 +16,14 @@ public sealed partial class HomeViewModel : ObservableObject
 {
     private readonly AppServices _services;
     private readonly Action<IReadOnlyList<string>> _onFilesAccepted;
+    private readonly Action? _onResume;
+
+    /// <summary>Texte du bouton « Reprendre » (null : aucune conversion à reprendre).</summary>
+    public string? ResumeText { get; }
+    public bool CanResume => ResumeText is not null;
+
+    [RelayCommand]
+    private void Resume() => _onResume?.Invoke();
 
     private static readonly string[] AcceptedExtensions = [".xlsx", ".xls"];
 
@@ -41,8 +49,11 @@ public sealed partial class HomeViewModel : ObservableObject
 
     public bool HasSelectedFile => SelectedFilePath is not null;
 
-    public HomeViewModel(AppServices services, Action<IReadOnlyList<string>> onFilesAccepted)
+    public HomeViewModel(AppServices services, Action<IReadOnlyList<string>> onFilesAccepted,
+        string? resumeText = null, Action? onResume = null)
     {
+        ResumeText = resumeText;
+        _onResume = onResume;
         _services = services;
         _onFilesAccepted = onFilesAccepted;
     }

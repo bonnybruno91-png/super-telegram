@@ -42,6 +42,7 @@ public static class CompositionRoot
             ["ics"] = new IcsExporter(),
             ["csv"] = new CsvExporter(),
             ["txt"] = new TextExporter(),
+            ["pdf"] = new PdfExporter(),
         };
 
         var openWorkbook = new OpenWorkbookUseCase(readerFactory, history);

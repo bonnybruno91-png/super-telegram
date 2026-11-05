@@ -21,6 +21,7 @@ public sealed partial class ExportViewModel : ObservableObject
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(SaveCommand))] private bool icsSelected = true;
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(SaveCommand))] private bool txtSelected = true;
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(SaveCommand))] private bool csvSelected;
+    [ObservableProperty, NotifyCanExecuteChangedFor(nameof(SaveCommand))] private bool pdfSelected;
     [ObservableProperty] private string outputFolder;
     [ObservableProperty, NotifyCanExecuteChangedFor(nameof(SaveCommand))] private bool isWriting;
     [ObservableProperty] private bool hasResult;
@@ -47,7 +48,7 @@ public sealed partial class ExportViewModel : ObservableObject
             : $"{summary.Publishable} cours seront exportés.";
     }
 
-    public int FileCount => (IcsSelected ? 1 : 0) + (TxtSelected ? 1 : 0) + (CsvSelected ? 1 : 0);
+    public int FileCount => (IcsSelected ? 1 : 0) + (TxtSelected ? 1 : 0) + (CsvSelected ? 1 : 0) + (PdfSelected ? 1 : 0);
 
     public string FileCountText => FileCount switch
     {
@@ -59,6 +60,7 @@ public sealed partial class ExportViewModel : ObservableObject
     partial void OnIcsSelectedChanged(bool value) => OnPropertyChanged(nameof(FileCountText));
     partial void OnTxtSelectedChanged(bool value) => OnPropertyChanged(nameof(FileCountText));
     partial void OnCsvSelectedChanged(bool value) => OnPropertyChanged(nameof(FileCountText));
+    partial void OnPdfSelectedChanged(bool value) => OnPropertyChanged(nameof(FileCountText));
 
     private bool CanSave() => !IsWriting && FileCount > 0;
 
@@ -88,6 +90,7 @@ public sealed partial class ExportViewModel : ObservableObject
             if (IcsSelected) ids.Add("ics");
             if (TxtSelected) ids.Add("txt");
             if (CsvSelected) ids.Add("csv");
+            if (PdfSelected) ids.Add("pdf");
 
             var outcome = await _services.Export.ExecuteAsync(
                 _session, ids, OutputFolder, TitleFormat.CourseDashTeacher, CsvProfile.Generic, TextFormat.Detailed);

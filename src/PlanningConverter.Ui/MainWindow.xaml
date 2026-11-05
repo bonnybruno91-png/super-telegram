@@ -9,6 +9,10 @@
         FontFamily="{StaticResource Font.Default}">
 
     <Window.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="Views/InfoViews.xaml" />
+        </ResourceDictionary.MergedDictionaries>
         <!-- Association type de ViewModel → vue (plan §10.1 : une seule fenêtre, navigation interne). -->
         <DataTemplate DataType="{x:Type vm:HomeViewModel}">
             <views:HomeView />
@@ -81,6 +85,7 @@
                      (TODO §123), le rail reste toujours développé pour l'instant. -->
             </Style.Triggers>
         </Style>
+        </ResourceDictionary>
     </Window.Resources>
 
     <Grid>
@@ -104,13 +109,13 @@
                         Command="{Binding NewConversionCommand}"
                         AutomationProperties.Name="Nouvelle conversion" />
                 <Button Content="Historique" Style="{StaticResource NavItem}" Margin="12,0,12,4"
-                        IsEnabled="False" AutomationProperties.Name="Historique — pas encore disponible" />
+                        Command="{Binding ShowHistoryCommand}" AutomationProperties.Name="Historique" />
                 <Button Content="Modèles" Style="{StaticResource NavItem}" Margin="12,0,12,4"
                         IsEnabled="False" AutomationProperties.Name="Modèles — pas encore disponible" />
                 <Button Content="Paramètres" Style="{StaticResource NavItem}" Margin="12,0,12,4"
                         IsEnabled="False" AutomationProperties.Name="Paramètres — pas encore disponible" />
                 <Button Content="Aide" Style="{StaticResource NavItem}" Margin="12,0,12,4"
-                        IsEnabled="False" AutomationProperties.Name="Aide — pas encore disponible" />
+                        Command="{Binding ShowHelpCommand}" AutomationProperties.Name="Aide" />
             </StackPanel>
 
             <!-- Zone de contenu : une seule vue à la fois. -->

@@ -20,6 +20,8 @@ public sealed partial class VerifyViewModel : ObservableObject
     private readonly Action _goToExport;
     private readonly Action<string> _announce;
     private readonly int _fileCount;
+    private readonly Action? _persist;
+    private bool _ready;
 
     public ObservableCollection<DayGroupViewModel> Days { get; } = [];
 
@@ -36,14 +38,16 @@ public sealed partial class VerifyViewModel : ObservableObject
     public string FileName { get; }
     public string ContextText { get; private set; } = "";
 
-    public VerifyViewModel(ConversionSession session, int fileCount, Action goToExport, Action<string> announce)
+    public VerifyViewModel(ConversionSession session, int fileCount, Action goToExport, Action<string> announce, Action? persist = null)
     {
+        _persist = persist;
         _fileCount = fileCount;
         _session = session;
         _goToExport = goToExport;
         _announce = announce;
         FileName = Path.GetFileName(session.SourceFilePath);
         Refresh();
+        _ready = true;
     }
 
     public bool CanUndo => _session.CanUndo;
@@ -93,6 +97,8 @@ public sealed partial class VerifyViewModel : ObservableObject
             : $"{summary.Publishable} cours seront exportés.";
         CanExport = summary.Publishable > 0;
         IsEmpty = summary.Total == 0;
+
+        if (_ready) _persist?.Invoke();
 
         OnPropertyChanged(nameof(CanUndo));
         OnPropertyChanged(nameof(CanRedo));

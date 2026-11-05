@@ -27,8 +27,13 @@ public sealed class ConversionSession
     public bool CanRedo => _redoStack.Count > 0;
 
     public ConversionSession(string sourceFilePath, string sourceFileHash, AnalysisResult initial)
+        : this(Guid.NewGuid().ToString(), sourceFilePath, sourceFileHash, initial)
     {
-        SessionId = Guid.NewGuid().ToString();
+    }
+
+    private ConversionSession(string sessionId, string sourceFilePath, string sourceFileHash, AnalysisResult initial)
+    {
+        SessionId = sessionId;
         SourceFilePath = sourceFilePath;
         SourceFileHash = sourceFileHash;
         Current = initial;
@@ -105,7 +110,8 @@ public sealed class ConversionSession
     {
         var snapshot = JsonSerializer.Deserialize<AutosaveSnapshot>(json);
         if (snapshot is null) return null;
-        return new ConversionSession(snapshot.SourceFilePath, snapshot.SourceFileHash, snapshot.Result);
+        // Même identifiant : la sauvegarde reprise continue d'écraser la même sauvegarde (pas de doublon).
+        return new ConversionSession(snapshot.SessionId, snapshot.SourceFilePath, snapshot.SourceFileHash, snapshot.Result);
     }
 
     private sealed record AutosaveSnapshot(

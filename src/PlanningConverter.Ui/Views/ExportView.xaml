@@ -18,6 +18,8 @@
                       Content="Texte accessible (TXT) — pour lecteur d'écran ou impression" />
             <CheckBox IsChecked="{Binding CsvSelected}" Style="{StaticResource Style.CheckBox}"
                       Content="Tableur (CSV) — pour Excel ou import personnalisé" />
+            <CheckBox IsChecked="{Binding PdfSelected}" Style="{StaticResource Style.CheckBox}"
+                      Content="PDF gros caractères — pour imprimer ou agrandir (non balisé : préférez le TXT avec un lecteur d'écran)" />
             <TextBlock Text="{Binding FileCountText}" Foreground="{StaticResource Brush.TextSecondary}" Margin="0,8,0,0" />
 
             <TextBlock Text="Dossier de destination" Style="{StaticResource Style.Label}" Margin="0,20,0,4" />
